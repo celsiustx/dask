@@ -1,0 +1,32 @@
+FROM python:3.8
+
+RUN apt-get update
+
+WORKDIR /
+RUN git clone https://github.com/celsiustx/numpy.git
+WORKDIR numpy
+RUN git checkout origin/keepdims
+RUN pip install -e .
+RUN pip install pytest
+RUN python runtests.py
+
+WORKDIR /
+RUN git clone https://github.com/celsiustx/scipy.git
+WORKDIR scipy
+RUN git checkout origin/keepdims
+RUN apt-get install -y libblas3 liblapack3 liblapack-dev libblas-dev gfortran
+RUN pip install -e .
+RUN python runtests.py -b
+
+# WORKDIR /
+# RUN git clone https://github.com/dask/dask.git
+# WORKDIR dask
+# RUN gith checkout 2.16.0
+# RUN pip install -e .[array] .[dataframe] pyarrow fastparquet
+# RUN pip install pytest
+# RUN pytest -v
+#
+# RUN pip install papermill
+# ADD sum-crash.ipynb ./
+# CMD papermill sum-crash.ipynb crashed.ipynb && echo 'passed, as expected!'
+#

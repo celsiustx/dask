@@ -99,8 +99,15 @@ def test_collect_yaml_dir():
 def no_read_permissions(path):
     perm_orig = stat.S_IMODE(os.stat(path).st_mode)
     perm_new = perm_orig ^ stat.S_IREAD
+    print(f'{path=}, {perm_orig} -> {perm_new}')
     try:
         os.chmod(path, perm_new)
+        print(f'path {path} after: {os.stat(path)}')
+        with open(path, 'r') as f:
+            print(yaml.safe_load(f.read()))
+        from subprocess import check_output
+        print(check_output(['ls','-l',path]))
+
         yield
     finally:
         os.chmod(path, perm_orig)
@@ -114,7 +121,7 @@ def test_collect_yaml_permission_errors(tmpdir, kind):
     a = {"x": 1, "y": 2}
     b = {"y": 3, "z": 4}
 
-    dir_path = str(tmpdir)
+    dir_path = '.' # str(tmpdir)
     a_path = os.path.join(dir_path, "a.yaml")
     b_path = os.path.join(dir_path, "b.yaml")
 

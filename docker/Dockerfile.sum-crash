@@ -1,13 +1,10 @@
-FROM python:3.8
+ARG dask_version
+FROM runsascoded/dask-test:"$dask_version"
 
-RUN apt-get update
-
-WORKDIR /
-RUN git clone https://github.com/celsiustx/dask.git
-WORKDIR dask
-RUN git checkout sum-crash  # One commit on top of Dask 2.16.0, that adds a single .ipynb added to demonstrate the crash (as well as this Dockerfile)
-#RUN apt-get install -y libblas3 liblapack3 liblapack-dev libblas-dev gfortran
-RUN pip install -e .[array]
-RUN pytest -v
-RUN pip install papermill
-CMD papermill sum-crash.ipynb crashed.ipynb || echo 'crashed, as expected!'
+RUN pip install papermill ipykernel jupyter
+RUN python -m ipykernel install --user --name 3.8.2
+#ENTRYPOINT jupyter notebook
+ADD sum-crash.ipynb ./
+ADD sum-crash.sh ./
+ENTRYPOINT ["./sum-crash.sh"]
+CMD ["--port", "8889"]
