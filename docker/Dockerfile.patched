@@ -28,7 +28,7 @@ RUN pytest -v
 
 RUN pip install papermill ipykernel jupyter
 RUN python -m ipykernel install --user --name 3.8.2
-ADD sum-test.ipynb ./
+ADD sum-test-matrix.ipynb sum-test-sparse.ipynb ./
 ADD sum-patched.sh ./
 ENTRYPOINT ["./sum-patched.sh"]
 CMD ["--port", "8889"]
