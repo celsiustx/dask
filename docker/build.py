@@ -28,14 +28,14 @@ def check(*args, **kwargs):
 @flag('-r','--run', help='Run containers')
 @flag('-f','--force', help='When running containers, first check that their name is free, and rm any existing container if not (has no effect if -r/--run not set)')
 @flag('-c','--copy', help='Copy result files out of run containers (has no effect if -r/--run not set)')
-@opt('-o', '--repository', default='runsascoded', help='Docker repository to use in image tags')
+@opt('-o', '--organization', default='runsascoded', help='Docker organization to use in image tags')
 @opt('-v', '--dask_version', default='2.16.0', help='Dask version to build containers against')
 @opt('-w', '--workdir', default='/home/user/dask', help='Workdir in run containers to copy files out from')
 @paths('-i', '--input', '--dockerfile', default=['clone', 'test', 'sum-crash', 'patched'], help='Suffixes of Dockerfiles to operate on')
-def main(build, push, run, force, copy, repository, dask_version, workdir, input):
+def main(build, push, run, force, copy, organization, dask_version, workdir, input):
     for name in input:
-        image=f'dask-{name}'
-        tag = f'{repository}/{image}:{dask_version}'
+        repository=f'dask-{name}'
+        tag = f'{organization}/{repository}:{dask_version}'
         if build:
             sh(
                 'docker', 'build',
@@ -46,19 +46,19 @@ def main(build, push, run, force, copy, repository, dask_version, workdir, input
             )
         if name in ['sum-crash','patched']:
             if run:
-                container_name = image
+                container_name = repository
                 if force:
                     if check('docker','inspect',container_name):
                         sh('docker','rm',container_name)
                 sh('docker','run','--name',container_name,tag)
-            if copy:
-                if name == 'sum-crash':
-                    result = 'crashed'
-                else:
-                    result = 'passed'
+                if copy:
+                    if name == 'sum-crash':
+                        result = 'crashed'
+                    else:
+                        result = 'passed'
 
-                sh('docker','cp',f'{image}:{workdir}/{result}-matrix.ipynb','./')
-                sh('docker','cp',f'{image}:{workdir}/{result}-sparse.ipynb','./')
+                    sh('docker','cp',f'{container_name}:{workdir}/{result}-matrix.ipynb','./')
+                    sh('docker','cp',f'{container_name}:{workdir}/{result}-sparse.ipynb','./')
         if push:
             sh('docker','push',tag)
 
