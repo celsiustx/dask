@@ -3236,6 +3236,24 @@ def unify_chunks(*args, **kwargs):
     return chunkss, arrays
 
 
+def unpack_and_count_to_singleton(x):
+    """
+
+    >>> unpack_singleton([[[[1]]]])
+    1
+    >>> unpack_singleton(np.array(np.datetime64('2000-01-01')))
+    array('2000-01-01', dtype='datetime64[D]')
+    """
+    count = 0
+    while isinstance(x, (list, tuple)):
+        try:
+            x = x[0]
+            count += 1
+        except (IndexError, TypeError, KeyError):
+            break
+    return x, count
+
+
 def unpack_singleton(x):
     """
 
@@ -4360,7 +4378,10 @@ def concatenate3(arrays):
         for arr in arrays
     ):
         try:
-            x = unpack_singleton(arrays)
+            x, count = unpack_and_count_to_singleton(arrays)
+            while x.ndim > count:
+                arrays = [arrays]
+                count += 1
             return _concatenate2(arrays, axes=tuple(range(x.ndim)))
         except TypeError:
             pass
