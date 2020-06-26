@@ -4380,10 +4380,11 @@ def concatenate3(arrays):
         for arr in arrays
     ):
         try:
-            x, count = unpack_and_count_to_singleton(arrays)
-            while x.ndim > count:
-                arrays = [arrays]
-                count += 1
+            x = unpack_singleton(arrays)
+            # x, count = unpack_and_count_to_singleton(arrays)
+            # while x.ndim > count:
+            #     arrays = [arrays]
+            #     count += 1
             return _concatenate2(arrays, axes=tuple(range(x.ndim)))
         except TypeError:
             pass
