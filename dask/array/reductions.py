@@ -161,6 +161,7 @@ def reduction(
 
     if meta is None and hasattr(x, "_meta"):
         try:
+            print(f'computing reduced_meta; x: {x} ({x.ndim}, {x._meta}, {x._meta.ndim})')
             reduced_meta = compute_meta(
                 chunk, x.dtype, x._meta, axis=axis, keepdims=True, computing_meta=True
             )
@@ -168,6 +169,7 @@ def reduction(
             reduced_meta = compute_meta(
                 chunk, x.dtype, x._meta, axis=axis, keepdims=True
             )
+            print(f'reduced_meta 2: {reduced_meta} ({reduced_meta.ndim})')
         except ValueError:
             pass
     else:
@@ -229,6 +231,7 @@ def _tree_reduce(
     if concatenate:
         func = compose(func, partial(_concatenate2, axes=axis))
     for i in range(depth - 1):
+        print(f'_tree_reduce: depth {i}')
         x = partial_reduce(
             func,
             x,
@@ -283,6 +286,8 @@ def partial_reduce(
         tuple(1 for p in partition_all(split_every[i], c)) if i in split_every else c
         for (i, c) in enumerate(x.chunks)
     ]
+    print(f'initial out_chunks: {out_chunks}')
+
     try:
         import numpy as np
         if isinstance(reduced_meta, np.matrix) and len(split_every) == 1:
@@ -301,7 +306,9 @@ def partial_reduce(
         out_axis = [i for i in range(x.ndim) if i not in split_every]
         getter = lambda k: get(out_axis, k)
         keys = map(getter, keys)
+        print(f'split_every={split_every}, out_axis={out_axis}, get={get}, keys={list(keys)}')
         out_chunks = list(getter(out_chunks))
+        print(f'keepdims=False out_chunks: {out_chunks}')
     dsk = {}
     for k, p in zip(keys, product(*parts)):
         decided = dict((i, j[0]) for (i, j) in enumerate(p) if len(j) == 1)
@@ -317,6 +324,7 @@ def partial_reduce(
         # no meta keyword argument exists for func, and it isn't required
         except TypeError:
             meta = func(reduced_meta)
+            print(f'computed meta: {meta} ({meta.ndim}), reduced {reduced_meta} ({reduced_meta.ndim})')
         # when no work can be computed on the empty array (e.g., func is a ufunc)
         except ValueError:
             pass

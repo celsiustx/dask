@@ -1048,9 +1048,11 @@ class Array(DaskMethodsMixin):
         else:
             dt = None
         self._chunks = normalize_chunks(chunks, shape, dtype=dt)
+        print(f'Initialized chunks: {self._chunks} (chunks={chunks}, shape={shape}, dt={dt})')
         if self._chunks is None:
             raise ValueError(CHUNKS_NONE_ERROR_MESSAGE)
 
+        print(f'Array.__new__: ndim={self.ndim}, chunks={self._chunks}')
         self._meta = meta_from_array(meta, ndim=self.ndim, dtype=dtype)
 
         for plugin in config.get("array_plugins", ()):
